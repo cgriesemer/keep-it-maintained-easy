@@ -15,9 +15,11 @@ interface AddTaskFormProps {
 
 export const AddTaskForm = ({ onAddTask }: AddTaskFormProps) => {
   const [open, setOpen] = useState(false);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
+    customCategory: '',
     intervalDays: '',
     description: '',
     lastCompleted: new Date().toISOString().split('T')[0]
@@ -25,12 +27,24 @@ export const AddTaskForm = ({ onAddTask }: AddTaskFormProps) => {
 
   const categories = ['Auto', 'HVAC', 'Plumbing', 'Home', 'Garden', 'Other'];
 
+  const handleCategoryChange = (value: string) => {
+    if (value === 'add-new') {
+      setShowCustomCategory(true);
+      setFormData({ ...formData, category: '', customCategory: '' });
+    } else {
+      setShowCustomCategory(false);
+      setFormData({ ...formData, category: value, customCategory: '' });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.category && formData.intervalDays) {
+    const categoryToUse = showCustomCategory ? formData.customCategory : formData.category;
+    
+    if (formData.name && categoryToUse && formData.intervalDays) {
       onAddTask({
         name: formData.name,
-        category: formData.category,
+        category: categoryToUse,
         intervalDays: parseInt(formData.intervalDays),
         description: formData.description,
         lastCompleted: formData.lastCompleted
@@ -38,10 +52,12 @@ export const AddTaskForm = ({ onAddTask }: AddTaskFormProps) => {
       setFormData({
         name: '',
         category: '',
+        customCategory: '',
         intervalDays: '',
         description: '',
         lastCompleted: new Date().toISOString().split('T')[0]
       });
+      setShowCustomCategory(false);
       setOpen(false);
     }
   };
@@ -72,18 +88,44 @@ export const AddTaskForm = ({ onAddTask }: AddTaskFormProps) => {
 
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+            {!showCustomCategory ? (
+              <Select value={formData.category} onValueChange={handleCategoryChange} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="add-new" className="text-primary font-medium">
+                    <Plus className="w-3 h-3 mr-2" />
+                    Add new category
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="space-y-2">
+                <Input
+                  placeholder="Enter new category name"
+                  value={formData.customCategory}
+                  onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowCustomCategory(false);
+                    setFormData({ ...formData, customCategory: '' });
+                  }}
+                >
+                  Choose from existing categories
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
