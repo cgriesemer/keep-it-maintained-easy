@@ -1,12 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { MaintenanceCard, MaintenanceTask } from '@/components/MaintenanceCard';
+import { ListView } from '@/components/ListView';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { TaskHistory } from '@/components/TaskHistory';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getTasks, saveTasks, addHistoryEntry, getTaskHistory } from '@/utils/storage';
-import { Settings, Filter, BarChart3 } from 'lucide-react';
+import { Settings, Filter, BarChart3, Grid3X3, List, LayoutGrid } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -14,6 +14,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [historyTask, setHistoryTask] = useState<MaintenanceTask | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
 
   useEffect(() => {
     const storedTasks = getTasks();
@@ -178,29 +179,55 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Category Filter */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filter by category:</span>
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-              className="capitalize"
-            >
-              {category}
-              {category !== 'all' && (
-                <Badge variant="secondary" className="ml-2">
-                  {tasks.filter(t => t.category === category).length}
-                </Badge>
-              )}
-            </Button>
-          ))}
+        {/* Filters and View Toggle */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          {/* Category Filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filter by category:</span>
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+                className="capitalize"
+              >
+                {category}
+                {category !== 'all' && (
+                  <Badge variant="secondary" className="ml-2">
+                    {tasks.filter(t => t.category === category).length}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
+
+          {/* View Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">View:</span>
+            <div className="flex rounded-md border">
+              <Button
+                variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('cards')}
+                className="rounded-r-none"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-l-none"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Tasks Grid */}
+        {/* Tasks Display */}
         {sortedTasks.length === 0 ? (
           <div className="text-center py-12">
             <Settings className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
@@ -210,7 +237,7 @@ const Index = () => {
             </p>
             <AddTaskForm onAddTask={handleAddTask} />
           </div>
-        ) : (
+        ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedTasks.map((task) => (
               <MaintenanceCard
@@ -221,6 +248,12 @@ const Index = () => {
               />
             ))}
           </div>
+        ) : (
+          <ListView
+            tasks={sortedTasks}
+            onComplete={handleCompleteTask}
+            onViewHistory={handleViewHistory}
+          />
         )}
 
         {/* History Dialog */}
