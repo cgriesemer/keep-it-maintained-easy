@@ -1,5 +1,4 @@
-
-import { Clock, Calendar, AlertCircle, CheckCircle, History } from 'lucide-react';
+import { Clock, Calendar, AlertCircle, CheckCircle, History, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MaintenanceTask } from './MaintenanceCard';
@@ -8,9 +7,10 @@ interface ListViewProps {
   tasks: MaintenanceTask[];
   onComplete: (taskId: string) => void;
   onViewHistory: (taskId: string) => void;
+  onEdit: (taskId: string) => void;
 }
 
-export const ListView = ({ tasks, onComplete, onViewHistory }: ListViewProps) => {
+export const ListView = ({ tasks, onComplete, onViewHistory, onEdit }: ListViewProps) => {
   const getDaysRemaining = (task: MaintenanceTask) => {
     const lastCompleted = new Date(task.lastCompleted);
     const nextDue = new Date(lastCompleted);
@@ -106,6 +106,13 @@ export const ListView = ({ tasks, onComplete, onViewHistory }: ListViewProps) =>
                 className="whitespace-nowrap"
               >
                 Complete
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onEdit(task.id)}
+              >
+                <Edit className="w-3 h-3" />
               </Button>
               <Button
                 size="sm"

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MaintenanceCard, MaintenanceTask } from '@/components/MaintenanceCard';
 import { ListView } from '@/components/ListView';
 import { AddTaskForm } from '@/components/AddTaskForm';
+import { EditTaskForm } from '@/components/EditTaskForm';
 import { TaskHistory } from '@/components/TaskHistory';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,8 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [historyTask, setHistoryTask] = useState<MaintenanceTask | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [editTask, setEditTask] = useState<MaintenanceTask | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
 
   useEffect(() => {
@@ -67,6 +70,18 @@ const Index = () => {
     });
   };
 
+  const handleEditTask = (taskId: string, updatedTaskData: Omit<MaintenanceTask, 'id'>) => {
+    const updatedTasks = tasks.map(t => 
+      t.id === taskId ? { ...updatedTaskData, id: taskId } : t
+    );
+    setTasks(updatedTasks);
+    saveTasks(updatedTasks);
+    toast({
+      title: "Task Updated",
+      description: `${updatedTaskData.name} has been updated successfully.`,
+    });
+  };
+
   const handleCompleteTask = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -91,6 +106,14 @@ const Index = () => {
     if (task) {
       setHistoryTask(task);
       setShowHistory(true);
+    }
+  };
+
+  const handleEditClick = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setEditTask(task);
+      setShowEditForm(true);
     }
   };
 
@@ -245,6 +268,7 @@ const Index = () => {
                 task={task}
                 onComplete={handleCompleteTask}
                 onViewHistory={handleViewHistory}
+                onEdit={handleEditClick}
               />
             ))}
           </div>
@@ -253,6 +277,7 @@ const Index = () => {
             tasks={sortedTasks}
             onComplete={handleCompleteTask}
             onViewHistory={handleViewHistory}
+            onEdit={handleEditClick}
           />
         )}
 
@@ -263,6 +288,16 @@ const Index = () => {
             history={getTaskHistory(historyTask.id)}
             open={showHistory}
             onOpenChange={setShowHistory}
+          />
+        )}
+
+        {/* Edit Task Dialog */}
+        {editTask && (
+          <EditTaskForm
+            task={editTask}
+            open={showEditForm}
+            onOpenChange={setShowEditForm}
+            onEditTask={handleEditTask}
           />
         )}
       </div>
