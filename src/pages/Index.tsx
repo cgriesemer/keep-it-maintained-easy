@@ -4,10 +4,11 @@ import { ListView } from '@/components/ListView';
 import { AddTaskForm } from '@/components/AddTaskForm';
 import { EditTaskForm } from '@/components/EditTaskForm';
 import { TaskHistory } from '@/components/TaskHistory';
+import { UserMenu } from '@/components/UserMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getTasks, saveTasks, addHistoryEntry, getTaskHistory } from '@/utils/storage';
-import { Settings, Filter, BarChart3, Grid3X3, List, LayoutGrid } from 'lucide-react';
+import { getTasks, saveTask, updateTask, addHistoryEntry } from '@/utils/supabaseStorage';
+import { Settings, Filter, BarChart3, LayoutGrid, List } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -18,87 +19,98 @@ const Index = () => {
   const [editTask, setEditTask] = useState<MaintenanceTask | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedTasks = getTasks();
-    if (storedTasks.length === 0) {
-      // Add some sample data for first-time users
-      const sampleTasks: MaintenanceTask[] = [
-        {
-          id: '1',
-          name: 'Change HVAC Filter',
-          category: 'HVAC',
-          intervalDays: 90,
-          lastCompleted: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-          description: 'Replace air filter in main HVAC unit'
-        },
-        {
-          id: '2',
-          name: 'Change Engine Oil',
-          category: 'Auto',
-          intervalDays: 120,
-          lastCompleted: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
-          description: 'Full synthetic oil change for Honda Civic'
-        },
-        {
-          id: '3',
-          name: 'Flush Water Heater',
-          category: 'Plumbing',
-          intervalDays: 365,
-          lastCompleted: new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString(),
-          description: 'Annual water heater maintenance and sediment flush'
-        }
-      ];
-      setTasks(sampleTasks);
-      saveTasks(sampleTasks);
-    } else {
-      setTasks(storedTasks);
-    }
+    loadTasks();
   }, []);
 
-  const handleAddTask = (newTask: Omit<MaintenanceTask, 'id'>) => {
-    const task: MaintenanceTask = {
-      ...newTask,
-      id: Date.now().toString()
-    };
-    const updatedTasks = [...tasks, task];
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-    toast({
-      title: "Task Added",
-      description: `${task.name} has been added to your maintenance schedule.`,
-    });
+  const loadTasks = async () => {
+    try {
+      const fetchedTasks = await getTasks();
+      setTasks(fetchedTasks);
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load maintenance tasks. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEditTask = (taskId: string, updatedTaskData: Omit<MaintenanceTask, 'id'>) => {
-    const updatedTasks = tasks.map(t => 
-      t.id === taskId ? { ...updatedTaskData, id: taskId } : t
-    );
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-    toast({
-      title: "Task Updated",
-      description: `${updatedTaskData.name} has been updated successfully.`,
-    });
+  const handleAddTask = async (newTaskData: Omit<MaintenanceTask, 'id'>) => {
+    try {
+      const newTask = await saveTask(newTaskData);
+      if (newTask) {
+        setTasks(prevTasks => [newTask, ...prevTasks]);
+        toast({
+          title: "Task Added",
+          description: `${newTask.name} has been added to your maintenance schedule.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add task. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleCompleteTask = (taskId: string) => {
+  const handleEditTask = async (taskId: string, updatedTaskData: Omit<MaintenanceTask, 'id'>) => {
+    try {
+      const updatedTask = await updateTask(taskId, updatedTaskData);
+      if (updatedTask) {
+        setTasks(prevTasks => 
+          prevTasks.map(t => t.id === taskId ? updatedTask : t)
+        );
+        toast({
+          title: "Task Updated",
+          description: `${updatedTask.name} has been updated successfully.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update task. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCompleteTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const now = new Date().toISOString();
-    const updatedTasks = tasks.map(t => 
-      t.id === taskId ? { ...t, lastCompleted: now } : t
-    );
-    
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-    addHistoryEntry(taskId, now);
-    
-    toast({
-      title: "Task Completed",
-      description: `${task.name} has been marked as complete and the timer has been reset.`,
-    });
+    try {
+      const now = new Date().toISOString();
+      const updatedTask = await updateTask(taskId, { lastCompleted: now });
+      
+      if (updatedTask) {
+        setTasks(prevTasks => 
+          prevTasks.map(t => t.id === taskId ? updatedTask : t)
+        );
+        
+        await addHistoryEntry(taskId, now);
+        
+        toast({
+          title: "Task Completed",
+          description: `${task.name} has been marked as complete and the timer has been reset.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error completing task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete task. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleViewHistory = (taskId: string) => {
@@ -162,6 +174,17 @@ const Index = () => {
 
   const stats = getStats();
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading your maintenance tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-8">
@@ -174,7 +197,10 @@ const Index = () => {
             </h1>
             <p className="text-muted-foreground">Stay on top of your maintenance schedule</p>
           </div>
-          <AddTaskForm onAddTask={handleAddTask} />
+          <div className="flex items-center gap-3">
+            <AddTaskForm onAddTask={handleAddTask} />
+            <UserMenu />
+          </div>
         </div>
 
         {/* Stats */}
@@ -285,7 +311,7 @@ const Index = () => {
         {historyTask && (
           <TaskHistory
             taskName={historyTask.name}
-            history={getTaskHistory(historyTask.id)}
+            taskId={historyTask.id}
             open={showHistory}
             onOpenChange={setShowHistory}
           />

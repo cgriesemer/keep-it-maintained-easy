@@ -1,25 +1,49 @@
 
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock } from 'lucide-react';
+import { getTaskHistory } from '@/utils/supabaseStorage';
 
 interface HistoryEntry {
   id: string;
-  taskId: string;
-  completedDate: string;
+  task_id: string;
+  completed_at: string;
   notes?: string;
+  user_id?: string;
 }
 
 interface TaskHistoryProps {
   taskName: string;
-  history: HistoryEntry[];
+  taskId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const TaskHistory = ({ taskName, history, open, onOpenChange }: TaskHistoryProps) => {
+export const TaskHistory = ({ taskName, taskId, open, onOpenChange }: TaskHistoryProps) => {
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open && taskId) {
+      loadHistory();
+    }
+  }, [open, taskId]);
+
+  const loadHistory = async () => {
+    setLoading(true);
+    try {
+      const historyData = await getTaskHistory(taskId);
+      setHistory(historyData);
+    } catch (error) {
+      console.error('Error loading task history:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sortedHistory = [...history].sort((a, b) => 
-    new Date(b.completedDate).getTime() - new Date(a.completedDate).getTime()
+    new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
   );
 
   return (
@@ -32,7 +56,12 @@ export const TaskHistory = ({ taskName, history, open, onOpenChange }: TaskHisto
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 max-h-[400px] overflow-y-auto">
-          {sortedHistory.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-2 text-muted-foreground">Loading history...</p>
+            </div>
+          ) : sortedHistory.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>No completion history yet</p>
@@ -44,7 +73,7 @@ export const TaskHistory = ({ taskName, history, open, onOpenChange }: TaskHisto
                   <div className="w-2 h-2 bg-primary rounded-full" />
                   <div>
                     <p className="font-medium">
-                      {new Date(entry.completedDate).toLocaleDateString('en-US', {
+                      {new Date(entry.completed_at).toLocaleDateString('en-US', {
                         weekday: 'short',
                         year: 'numeric',
                         month: 'short',
