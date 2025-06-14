@@ -83,6 +83,37 @@ const Index = () => {
     }
   };
 
+  const handleDuplicateTask = async (taskId: string) => {
+    const taskToDuplicate = tasks.find(t => t.id === taskId);
+    if (!taskToDuplicate) return;
+
+    try {
+      const duplicatedTaskData = {
+        name: `${taskToDuplicate.name} (Copy)`,
+        category: taskToDuplicate.category,
+        intervalDays: taskToDuplicate.intervalDays,
+        lastCompleted: new Date().toISOString(),
+        description: taskToDuplicate.description
+      };
+
+      const newTask = await saveTask(duplicatedTaskData);
+      if (newTask) {
+        setTasks(prevTasks => [newTask, ...prevTasks]);
+        toast({
+          title: "Task Duplicated",
+          description: `${newTask.name} has been created based on ${taskToDuplicate.name}.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error duplicating task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to duplicate task. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCompleteTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -295,6 +326,7 @@ const Index = () => {
                 onComplete={handleCompleteTask}
                 onViewHistory={handleViewHistory}
                 onEdit={handleEditClick}
+                onDuplicate={handleDuplicateTask}
               />
             ))}
           </div>
@@ -304,6 +336,7 @@ const Index = () => {
             onComplete={handleCompleteTask}
             onViewHistory={handleViewHistory}
             onEdit={handleEditClick}
+            onDuplicate={handleDuplicateTask}
           />
         )}
 

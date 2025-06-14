@@ -1,4 +1,4 @@
-import { Clock, Calendar, AlertCircle, CheckCircle, Edit } from 'lucide-react';
+import { Clock, Calendar, AlertCircle, CheckCircle, Edit, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,9 +17,10 @@ interface MaintenanceCardProps {
   onComplete: (taskId: string) => void;
   onViewHistory: (taskId: string) => void;
   onEdit: (taskId: string) => void;
+  onDuplicate: (taskId: string) => void;
 }
 
-export const MaintenanceCard = ({ task, onComplete, onViewHistory, onEdit }: MaintenanceCardProps) => {
+export const MaintenanceCard = ({ task, onComplete, onViewHistory, onEdit, onDuplicate }: MaintenanceCardProps) => {
   const getDaysRemaining = () => {
     const lastCompleted = new Date(task.lastCompleted);
     const nextDue = new Date(lastCompleted);
@@ -105,6 +106,9 @@ export const MaintenanceCard = ({ task, onComplete, onViewHistory, onEdit }: Mai
         <div className="flex gap-2">
           <Button onClick={() => onComplete(task.id)} className="flex-1">
             Mark Complete
+          </Button>
+          <Button variant="outline" onClick={() => onDuplicate(task.id)}>
+            <Copy className="w-3 h-3" />
           </Button>
           <Button variant="outline" onClick={() => onEdit(task.id)}>
             <Edit className="w-3 h-3" />
