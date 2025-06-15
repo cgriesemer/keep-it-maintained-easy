@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Plus, Trash2 } from 'lucide-react';
 import { MaintenanceTask } from './MaintenanceCard';
 
 interface EditTaskFormProps {
@@ -14,9 +15,10 @@ interface EditTaskFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEditTask: (taskId: string, updatedTask: Omit<MaintenanceTask, 'id'>) => void;
+  onDeleteTask: (taskId: string) => void;
 }
 
-export const EditTaskForm = ({ task, open, onOpenChange, onEditTask }: EditTaskFormProps) => {
+export const EditTaskForm = ({ task, open, onOpenChange, onEditTask, onDeleteTask }: EditTaskFormProps) => {
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [formData, setFormData] = useState({
     name: task.name,
@@ -67,6 +69,11 @@ export const EditTaskForm = ({ task, open, onOpenChange, onEditTask }: EditTaskF
       lastCompleted: task.lastCompleted.split('T')[0]
     });
     setShowCustomCategory(false);
+    onOpenChange(false);
+  };
+
+  const handleDelete = () => {
+    onDeleteTask(task.id);
     onOpenChange(false);
   };
 
@@ -163,11 +170,36 @@ export const EditTaskForm = ({ task, open, onOpenChange, onEditTask }: EditTaskF
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button type="submit">Save Changes</Button>
+          <div className="flex justify-between pt-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="destructive" className="flex items-center gap-2">
+                  <Trash2 className="w-4 h-4" />
+                  Delete Task
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete "{task.name}" and all its history. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Delete Task
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">Save Changes</Button>
+            </div>
           </div>
         </form>
       </DialogContent>

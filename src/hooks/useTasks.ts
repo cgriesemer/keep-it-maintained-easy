@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { MaintenanceTask } from '@/components/MaintenanceCard';
-import { getTasks, saveTask, updateTask, addHistoryEntry } from '@/utils/supabaseStorage';
+import { getTasks, saveTask, updateTask, addHistoryEntry, deleteTask } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
 
 export const useTasks = () => {
@@ -65,6 +65,27 @@ export const useTasks = () => {
       toast({
         title: "Error",
         description: "Failed to update task. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const taskToDelete = tasks.find(t => t.id === taskId);
+    if (!taskToDelete) return;
+
+    try {
+      await deleteTask(taskId);
+      setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+      toast({
+        title: "Task Deleted",
+        description: `${taskToDelete.name} has been deleted successfully.`,
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete task. Please try again.",
         variant: "destructive"
       });
     }
@@ -136,6 +157,7 @@ export const useTasks = () => {
     loading,
     handleAddTask,
     handleEditTask,
+    handleDeleteTask,
     handleDuplicateTask,
     handleCompleteTask
   };

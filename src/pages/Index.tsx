@@ -14,7 +14,7 @@ import { sortTasksByUrgency, getTaskStats } from '@/utils/taskUtils';
 import { Settings } from 'lucide-react';
 
 const Index = () => {
-  const { tasks, loading, handleAddTask, handleEditTask, handleDuplicateTask, handleCompleteTask } = useTasks();
+  const { tasks, loading, handleAddTask, handleEditTask, handleDeleteTask, handleDuplicateTask, handleCompleteTask } = useTasks();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [historyTask, setHistoryTask] = useState<MaintenanceTask | null>(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -131,6 +131,7 @@ const Index = () => {
             open={showEditForm}
             onOpenChange={setShowEditForm}
             onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
           />
         )}
       </div>
