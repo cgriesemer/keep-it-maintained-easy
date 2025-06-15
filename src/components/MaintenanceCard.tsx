@@ -1,3 +1,4 @@
+
 import { Clock, Calendar, AlertCircle, CheckCircle, Edit, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -105,19 +106,21 @@ export const MaintenanceCard = ({ task, onComplete, onViewHistory, onEdit, onDup
             <span>Last: {new Date(task.lastCompleted).toLocaleDateString()}</span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Button onClick={() => onComplete(task.id)} className="flex-1">
             Mark Complete
           </Button>
-          <Button variant="outline" onClick={() => onDuplicate(task.id)}>
-            <Copy className="w-3 h-3" />
-          </Button>
-          <Button variant="outline" onClick={() => onEdit(task.id)}>
-            <Edit className="w-3 h-3" />
-          </Button>
-          <Button variant="outline" onClick={() => onViewHistory(task.id)}>
-            History
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onDuplicate(task.id)} className="flex-1 sm:flex-none">
+              <Copy className="w-3 h-3" />
+            </Button>
+            <Button variant="outline" onClick={() => onEdit(task.id)} className="flex-1 sm:flex-none">
+              <Edit className="w-3 h-3" />
+            </Button>
+            <Button variant="outline" onClick={() => onViewHistory(task.id)} className="flex-1 sm:flex-none">
+              History
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
