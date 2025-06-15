@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MaintenanceCard, MaintenanceTask } from '@/components/MaintenanceCard';
 import { ListView } from '@/components/ListView';
 import { AddTaskForm } from '@/components/AddTaskForm';
@@ -23,6 +23,20 @@ const Index = () => {
   const [editTask, setEditTask] = useState<MaintenanceTask | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+
+  // Load view mode from localStorage on component mount
+  useEffect(() => {
+    const savedViewMode = localStorage.getItem('maintenance-view-mode');
+    if (savedViewMode === 'cards' || savedViewMode === 'list') {
+      setViewMode(savedViewMode);
+    }
+  }, []);
+
+  // Handle view mode change and persist to localStorage
+  const handleViewModeChange = (mode: 'cards' | 'list') => {
+    setViewMode(mode);
+    localStorage.setItem('maintenance-view-mode', mode);
+  };
 
   const handleViewHistory = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
@@ -86,7 +100,7 @@ const Index = () => {
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
           viewMode={viewMode}
-          onViewModeChange={setViewMode}
+          onViewModeChange={handleViewModeChange}
           tasks={tasks}
           sortBy={sortBy}
           onSortChange={setSortBy}
