@@ -1,5 +1,6 @@
 
 import { MaintenanceTask } from '@/components/MaintenanceCard';
+import { SortOption } from '@/components/SortDropdown';
 
 export const getDaysRemaining = (task: MaintenanceTask): number => {
   const lastCompleted = new Date(task.lastCompleted);
@@ -15,6 +16,25 @@ export const sortTasksByUrgency = (tasks: MaintenanceTask[]): MaintenanceTask[] 
     const aDays = getDaysRemaining(a);
     const bDays = getDaysRemaining(b);
     return aDays - bDays;
+  });
+};
+
+export const sortTasks = (tasks: MaintenanceTask[], sortBy: SortOption): MaintenanceTask[] => {
+  return [...tasks].sort((a, b) => {
+    switch (sortBy) {
+      case 'days-asc':
+        return getDaysRemaining(a) - getDaysRemaining(b);
+      case 'days-desc':
+        return getDaysRemaining(b) - getDaysRemaining(a);
+      case 'date-added':
+        return new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime();
+      case 'date-modified':
+        return new Date(b.updated_at || '').getTime() - new Date(a.updated_at || '').getTime();
+      case 'alphabetical':
+        return a.name.localeCompare(b.name);
+      default:
+        return getDaysRemaining(a) - getDaysRemaining(b);
+    }
   });
 };
 

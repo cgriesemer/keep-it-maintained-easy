@@ -9,13 +9,15 @@ import { UserMenu } from '@/components/UserMenu';
 import { StatsCard } from '@/components/StatsCard';
 import { FilterBar } from '@/components/FilterBar';
 import { EmptyState } from '@/components/EmptyState';
+import { SortOption } from '@/components/SortDropdown';
 import { useTasks } from '@/hooks/useTasks';
-import { sortTasksByUrgency, getTaskStats } from '@/utils/taskUtils';
+import { sortTasks, getTaskStats } from '@/utils/taskUtils';
 import { Settings } from 'lucide-react';
 
 const Index = () => {
   const { tasks, loading, handleAddTask, handleEditTask, handleDeleteTask, handleDuplicateTask, handleCompleteTask } = useTasks();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('days-asc');
   const [historyTask, setHistoryTask] = useState<MaintenanceTask | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [editTask, setEditTask] = useState<MaintenanceTask | null>(null);
@@ -43,7 +45,7 @@ const Index = () => {
     ? tasks 
     : tasks.filter(t => t.category === selectedCategory);
 
-  const sortedTasks = sortTasksByUrgency(filteredTasks);
+  const sortedTasks = sortTasks(filteredTasks, sortBy);
   const stats = getTaskStats(tasks);
 
   if (loading) {
@@ -78,7 +80,7 @@ const Index = () => {
         {/* Stats */}
         <StatsCard overdue={stats.overdue} dueSoon={stats.dueSoon} total={stats.total} />
 
-        {/* Filters and View Toggle */}
+        {/* Filters, Sort, and View Toggle */}
         <FilterBar
           categories={categories}
           selectedCategory={selectedCategory}
@@ -86,6 +88,8 @@ const Index = () => {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           tasks={tasks}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
         />
 
         {/* Tasks Display */}
