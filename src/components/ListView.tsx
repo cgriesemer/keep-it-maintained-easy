@@ -1,7 +1,9 @@
+
 import { Clock, Calendar, AlertCircle, CheckCircle, History, Edit, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MaintenanceTask } from './MaintenanceCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ListViewProps {
   tasks: MaintenanceTask[];
@@ -12,6 +14,8 @@ interface ListViewProps {
 }
 
 export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate }: ListViewProps) => {
+  const isMobile = useIsMobile();
+
   const getDaysRemaining = (task: MaintenanceTask) => {
     const lastCompleted = new Date(task.lastCompleted);
     const nextDue = new Date(lastCompleted);
@@ -61,6 +65,86 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
     return colors[category] || 'bg-gray-500/10 text-gray-700 border-gray-200';
   };
 
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        {tasks.map((task) => {
+          const statusInfo = getStatusInfo(task);
+          const StatusIcon = statusInfo.icon;
+          
+          return (
+            <div
+              key={task.id}
+              className="bg-card rounded-lg border p-4 space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <StatusIcon className={`w-4 h-4 ${statusInfo.textColor}`} />
+                    <span className={`text-sm font-medium ${statusInfo.textColor}`}>
+                      {statusInfo.text}
+                    </span>
+                  </div>
+                  
+                  <h3 className="font-medium mb-1">{task.name}</h3>
+                  
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className={`${getCategoryColor(task.category)} text-xs`}>
+                      {task.category}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      <span>Every {task.intervalDays}d</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>Last: {new Date(task.lastCompleted).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => onComplete(task.id)}
+                  className="flex-1"
+                >
+                  Complete
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onDuplicate(task.id)}
+                >
+                  <Copy className="w-3 h-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onEdit(task.id)}
+                >
+                  <Edit className="w-3 h-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onViewHistory(task.id)}
+                >
+                  <History className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Desktop layout (existing code)
   return (
     <div className="space-y-2">
       {tasks.map((task) => {
