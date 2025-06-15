@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface MaintenanceTask {
@@ -9,6 +8,8 @@ export interface MaintenanceTask {
   lastCompleted: string;
   description?: string;
   user_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface HistoryEntry {
@@ -37,11 +38,13 @@ export const getTasks = async (): Promise<MaintenanceTask[]> => {
     intervalDays: task.interval_days,
     lastCompleted: task.last_completed,
     description: task.description,
-    user_id: task.user_id
+    user_id: task.user_id,
+    created_at: task.created_at,
+    updated_at: task.updated_at
   })) || [];
 };
 
-export const saveTask = async (task: Omit<MaintenanceTask, 'id' | 'user_id'>): Promise<MaintenanceTask | null> => {
+export const saveTask = async (task: Omit<MaintenanceTask, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<MaintenanceTask | null> => {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -73,11 +76,13 @@ export const saveTask = async (task: Omit<MaintenanceTask, 'id' | 'user_id'>): P
     intervalDays: data.interval_days,
     lastCompleted: data.last_completed,
     description: data.description,
-    user_id: data.user_id
+    user_id: data.user_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at
   };
 };
 
-export const updateTask = async (taskId: string, updates: Partial<Omit<MaintenanceTask, 'id' | 'user_id'>>): Promise<MaintenanceTask | null> => {
+export const updateTask = async (taskId: string, updates: Partial<Omit<MaintenanceTask, 'id' | 'user_id' | 'created_at' | 'updated_at'>>): Promise<MaintenanceTask | null> => {
   const updateData: any = {};
   
   if (updates.name !== undefined) updateData.name = updates.name;
@@ -107,7 +112,9 @@ export const updateTask = async (taskId: string, updates: Partial<Omit<Maintenan
     intervalDays: data.interval_days,
     lastCompleted: data.last_completed,
     description: data.description,
-    user_id: data.user_id
+    user_id: data.user_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at
   };
 };
 

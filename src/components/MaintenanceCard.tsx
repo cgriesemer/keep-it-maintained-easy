@@ -10,6 +10,8 @@ export interface MaintenanceTask {
   intervalDays: number;
   lastCompleted: string;
   description?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface MaintenanceCardProps {
