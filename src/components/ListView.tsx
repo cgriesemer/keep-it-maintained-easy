@@ -1,4 +1,3 @@
-
 import { Clock, Calendar, AlertCircle, CheckCircle, History, Edit, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -86,10 +85,9 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
                     </span>
                   </div>
                   
-                  <h3 className="font-medium mb-1">{task.name}</h3>
-                  
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className={`${getCategoryColor(task.category)} text-xs`}>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h3 className="font-medium flex-1 min-w-0">{task.name}</h3>
+                    <Badge variant="outline" className={`${getCategoryColor(task.category)} text-xs flex-shrink-0`}>
                       {task.category}
                     </Badge>
                   </div>
