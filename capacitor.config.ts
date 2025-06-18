@@ -10,7 +10,22 @@ const config: CapacitorConfig = {
     cleartext: true
   },
   ios: {
-    contentInset: 'automatic'
+    contentInset: 'automatic',
+    backgroundColor: '#f9fafb',
+    allowsLinkPreview: false,
+    scrollEnabled: true,
+    swipeGestures: true
+  },
+  plugins: {
+    StatusBar: {
+      style: 'light',
+      backgroundColor: '#ffffff'
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#f9fafb',
+      showSpinner: false
+    }
   }
 };
 

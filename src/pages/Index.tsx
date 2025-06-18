@@ -64,95 +64,116 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading your maintenance tasks...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">Loading your maintenance tasks...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Settings className="w-8 h-8" />
-              Maintenance Tracker
-            </h1>
-            <p className="text-muted-foreground">Stay on top of your maintenance schedule</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <AddTaskForm onAddTask={handleAddTask} />
-            <UserMenu />
+    <div className="min-h-screen bg-gray-50">
+      {/* iOS-style Status Bar Safe Area */}
+      <div className="safe-area-inset-top bg-white"></div>
+      
+      {/* Native-style Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                <Settings className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Maintenance</h1>
+                <p className="text-sm text-gray-500">Stay on schedule</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <AddTaskForm onAddTask={handleAddTask} />
+              <UserMenu />
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Stats */}
-        <StatsCard overdue={stats.overdue} dueSoon={stats.dueSoon} total={stats.total} />
+      <div className="px-4 py-4 space-y-4">
+        {/* Stats with native styling */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <StatsCard overdue={stats.overdue} dueSoon={stats.dueSoon} total={stats.total} />
+        </div>
 
-        {/* Filters, Sort, and View Toggle */}
-        <FilterBar
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          viewMode={viewMode}
-          onViewModeChange={handleViewModeChange}
-          tasks={tasks}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-        />
+        {/* Filters with native styling */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <FilterBar
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            tasks={tasks}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+          />
+        </div>
 
         {/* Tasks Display */}
         {sortedTasks.length === 0 ? (
-          <EmptyState onAddTask={handleAddTask} />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <EmptyState onAddTask={handleAddTask} />
+          </div>
         ) : viewMode === 'cards' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {sortedTasks.map((task) => (
-              <MaintenanceCard
-                key={task.id}
-                task={task}
-                onComplete={handleCompleteTask}
-                onViewHistory={handleViewHistory}
-                onEdit={handleEditClick}
-                onDuplicate={handleDuplicateTask}
-              />
+              <div key={task.id} className="bg-white rounded-xl shadow-sm border border-gray-100">
+                <MaintenanceCard
+                  task={task}
+                  onComplete={handleCompleteTask}
+                  onViewHistory={handleViewHistory}
+                  onEdit={handleEditClick}
+                  onDuplicate={handleDuplicateTask}
+                />
+              </div>
             ))}
           </div>
         ) : (
-          <ListView
-            tasks={sortedTasks}
-            onComplete={handleCompleteTask}
-            onViewHistory={handleViewHistory}
-            onEdit={handleEditClick}
-            onDuplicate={handleDuplicateTask}
-          />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <ListView
+              tasks={sortedTasks}
+              onComplete={handleCompleteTask}
+              onViewHistory={handleViewHistory}
+              onEdit={handleEditClick}
+              onDuplicate={handleDuplicateTask}
+            />
+          </div>
         )}
 
-        {/* History Dialog */}
-        {historyTask && (
-          <TaskHistory
-            taskName={historyTask.name}
-            taskId={historyTask.id}
-            open={showHistory}
-            onOpenChange={setShowHistory}
-          />
-        )}
-
-        {/* Edit Task Dialog */}
-        {editTask && (
-          <EditTaskForm
-            task={editTask}
-            open={showEditForm}
-            onOpenChange={setShowEditForm}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteTask}
-          />
-        )}
+        {/* Bottom safe area for iOS */}
+        <div className="h-8"></div>
       </div>
+
+      {/* History Dialog */}
+      {historyTask && (
+        <TaskHistory
+          taskName={historyTask.name}
+          taskId={historyTask.id}
+          open={showHistory}
+          onOpenChange={setShowHistory}
+        />
+      )}
+
+      {/* Edit Task Dialog */}
+      {editTask && (
+        <EditTaskForm
+          task={editTask}
+          open={showEditForm}
+          onOpenChange={setShowEditForm}
+          onEditTask={handleEditTask}
+          onDeleteTask={handleDeleteTask}
+        />
+      )}
     </div>
   );
 };
