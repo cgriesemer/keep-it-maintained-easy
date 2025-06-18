@@ -1,4 +1,3 @@
-
 import { Clock, Calendar, AlertCircle, CheckCircle, History, Edit, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,17 +66,17 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
 
   if (isMobile) {
     return (
-      <div className="divide-y divide-gray-100">
-        {tasks.map((task, index) => {
+      <div className="space-y-3">
+        {tasks.map((task) => {
           const statusInfo = getStatusInfo(task);
           const StatusIcon = statusInfo.icon;
           
           return (
             <div
               key={task.id}
-              className={`p-4 ${index === 0 ? '' : ''} active:bg-gray-50 transition-colors`}
+              className="bg-card rounded-lg border p-4 space-y-3"
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <StatusIcon className={`w-4 h-4 ${statusInfo.textColor}`} />
@@ -87,13 +86,13 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
                   </div>
                   
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-900 flex-1 min-w-0 text-base">{task.name}</h3>
-                    <Badge variant="outline" className={`${getCategoryColor(task.category)} text-xs flex-shrink-0 font-medium`}>
+                    <h3 className="font-medium flex-1 min-w-0">{task.name}</h3>
+                    <Badge variant="outline" className={`${getCategoryColor(task.category)} text-xs flex-shrink-0`}>
                       {task.category}
                     </Badge>
                   </div>
                   
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       <span>Every {task.intervalDays}d</span>
@@ -110,7 +109,7 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
                 <Button
                   size="sm"
                   onClick={() => onComplete(task.id)}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg h-10"
+                  className="flex-1"
                 >
                   Complete
                 </Button>
@@ -118,25 +117,22 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
                   size="sm"
                   variant="outline"
                   onClick={() => onDuplicate(task.id)}
-                  className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg h-10 w-10 p-0"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-3 h-3" />
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onEdit(task.id)}
-                  className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg h-10 w-10 p-0"
                 >
-                  <Edit className="w-4 h-4" />
+                  <Edit className="w-3 h-3" />
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onViewHistory(task.id)}
-                  className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg h-10 w-10 p-0"
                 >
-                  <History className="w-4 h-4" />
+                  <History className="w-3 h-3" />
                 </Button>
               </div>
             </div>
