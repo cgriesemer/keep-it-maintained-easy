@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import { MaintenanceTask } from '@/components/MaintenanceCard';
 import { getTasks, saveTask, updateTask, addHistoryEntry, deleteTask } from '@/utils/supabaseStorage';
 import { toast } from '@/hooks/use-toast';
+import { useNotifications } from './useNotifications';
 
 export const useTasks = () => {
   const [tasks, setTasks] = useState<MaintenanceTask[]>([]);
   const [loading, setLoading] = useState(true);
+  const { scheduleTaskNotifications, cancelNotificationForTask } = useNotifications(tasks);
 
   useEffect(() => {
     loadTasks();
@@ -76,6 +78,7 @@ export const useTasks = () => {
 
     try {
       await deleteTask(taskId);
+      await cancelNotificationForTask(taskId);
       setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
       toast({
         title: "Task Deleted",
@@ -136,6 +139,7 @@ export const useTasks = () => {
         );
         
         await addHistoryEntry(taskId, now);
+        await cancelNotificationForTask(taskId);
         
         toast({
           title: "Task Completed",
