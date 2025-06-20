@@ -1,6 +1,5 @@
 
 import { useEffect } from 'react';
-import { LocalNotifications, ScheduleOptions } from '@capacitor/local-notifications';
 import { MaintenanceTask } from '@/components/MaintenanceCard';
 import { getDaysRemaining } from '@/utils/taskUtils';
 
@@ -17,10 +16,16 @@ export const useNotifications = (tasks: MaintenanceTask[]) => {
 
   const initializeNotifications = async () => {
     try {
+      // Check if notifications are supported
+      if (!('Notification' in window)) {
+        console.log('This browser does not support notifications');
+        return;
+      }
+
       // Request permission for notifications
-      const permission = await LocalNotifications.requestPermissions();
+      const permission = await Notification.requestPermission();
       
-      if (permission.display !== 'granted') {
+      if (permission !== 'granted') {
         console.log('Notification permission not granted');
         return;
       }
@@ -33,78 +38,53 @@ export const useNotifications = (tasks: MaintenanceTask[]) => {
 
   const scheduleTaskNotifications = async (tasks: MaintenanceTask[]) => {
     try {
-      // Clear existing notifications first
-      await LocalNotifications.cancel({ notifications: [] });
-
-      const notifications: ScheduleOptions[] = [];
+      // Check if notifications are supported and permitted
+      if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+      }
 
       tasks.forEach((task) => {
         const daysRemaining = getDaysRemaining(task);
         
-        // Schedule notification for tasks due within 24 hours (0 or 1 day remaining)
+        // Show immediate notification for tasks due within 24 hours (0 or 1 day remaining)
         if (daysRemaining <= 1 && daysRemaining >= 0) {
-          const lastCompleted = new Date(task.lastCompleted);
-          const dueDate = new Date(lastCompleted);
-          dueDate.setDate(dueDate.getDate() + task.intervalDays);
-          
-          // Calculate notification time (8 AM on the due date)
-          const notificationTime = new Date(dueDate);
-          notificationTime.setHours(8, 0, 0, 0);
-          
-          // Only schedule if the notification time is in the future
-          if (notificationTime > new Date()) {
-            notifications.push({
-              notifications: [{
-                title: 'Maintenance Due',
-                body: daysRemaining === 0 
-                  ? `${task.name} is due today!`
-                  : `${task.name} is due tomorrow`,
-                id: parseInt(task.id.replace(/\D/g, '').substring(0, 8)) || Math.floor(Math.random() * 100000),
-                schedule: { at: notificationTime },
-                sound: undefined,
-                attachments: undefined,
-                actionTypeId: "",
-                extra: {
-                  taskId: task.id,
-                  taskName: task.name
-                }
-              }]
-            });
-          }
+          const notificationTitle = 'Maintenance Due';
+          const notificationBody = daysRemaining === 0 
+            ? `${task.name} is due today!`
+            : `${task.name} is due tomorrow`;
+
+          // Show notification immediately
+          new Notification(notificationTitle, {
+            body: notificationBody,
+            icon: '/favicon.ico',
+            tag: `task-${task.id}`, // Prevents duplicate notifications
+            requireInteraction: true
+          });
         }
       });
 
-      if (notifications.length > 0) {
-        for (const notification of notifications) {
-          await LocalNotifications.schedule(notification);
-        }
-        console.log(`Scheduled ${notifications.length} notifications`);
-      }
+      console.log('Checked tasks for immediate notifications');
     } catch (error) {
-      console.error('Error scheduling notifications:', error);
+      console.error('Error checking notifications:', error);
     }
   };
 
-  const cancelNotificationForTask = async (taskId: string) => {
-    try {
-      const pending = await LocalNotifications.getPending();
-      const notificationToCancel = pending.notifications.find(
-        n => n.extra?.taskId === taskId
-      );
-      
-      if (notificationToCancel) {
-        await LocalNotifications.cancel({ 
-          notifications: [{ id: notificationToCancel.id }] 
-        });
-        console.log(`Cancelled notification for task: ${taskId}`);
-      }
-    } catch (error) {
-      console.error('Error cancelling notification:', error);
+  const showTaskNotification = (task: MaintenanceTask, message: string) => {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      return;
     }
+
+    new Notification('Maintenance Tracker', {
+      body: message,
+      icon: '/favicon.ico',
+      tag: `task-action-${task.id}`,
+      requireInteraction: false
+    });
   };
 
   return {
     scheduleTaskNotifications,
-    cancelNotificationForTask
+    showTaskNotification,
+    initializeNotifications
   };
 };

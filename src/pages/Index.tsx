@@ -9,6 +9,7 @@ import { UserMenu } from '@/components/UserMenu';
 import { StatsCard } from '@/components/StatsCard';
 import { FilterBar } from '@/components/FilterBar';
 import { EmptyState } from '@/components/EmptyState';
+import { NotificationBanner } from '@/components/NotificationBanner';
 import { SortOption } from '@/components/SortDropdown';
 import { useTasks } from '@/hooks/useTasks';
 import { sortTasks, getTaskStats } from '@/utils/taskUtils';
@@ -90,6 +91,9 @@ const Index = () => {
             <UserMenu />
           </div>
         </div>
+
+        {/* Notification Banner */}
+        <NotificationBanner />
 
         {/* Stats */}
         <StatsCard overdue={stats.overdue} dueSoon={stats.dueSoon} total={stats.total} />

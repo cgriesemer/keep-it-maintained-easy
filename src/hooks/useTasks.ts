@@ -8,7 +8,7 @@ import { useNotifications } from './useNotifications';
 export const useTasks = () => {
   const [tasks, setTasks] = useState<MaintenanceTask[]>([]);
   const [loading, setLoading] = useState(true);
-  const { scheduleTaskNotifications, cancelNotificationForTask } = useNotifications(tasks);
+  const { scheduleTaskNotifications, showTaskNotification } = useNotifications(tasks);
 
   useEffect(() => {
     loadTasks();
@@ -39,6 +39,7 @@ export const useTasks = () => {
           title: "Task Added",
           description: `${newTask.name} has been added to your maintenance schedule.`,
         });
+        showTaskNotification(newTask, `${newTask.name} has been added to your maintenance schedule.`);
       }
     } catch (error) {
       console.error('Error adding task:', error);
@@ -78,7 +79,6 @@ export const useTasks = () => {
 
     try {
       await deleteTask(taskId);
-      await cancelNotificationForTask(taskId);
       setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
       toast({
         title: "Task Deleted",
@@ -139,12 +139,13 @@ export const useTasks = () => {
         );
         
         await addHistoryEntry(taskId, now);
-        await cancelNotificationForTask(taskId);
         
         toast({
           title: "Task Completed",
           description: `${task.name} has been marked as complete and the timer has been reset.`,
         });
+        
+        showTaskNotification(task, `${task.name} has been completed! Great job staying on top of your maintenance.`);
       }
     } catch (error) {
       console.error('Error completing task:', error);
