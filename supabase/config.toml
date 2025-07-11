@@ -63,3 +63,6 @@ template_subjects_path = "./supabase/templates/subjects"
 
 [functions.maintenance-webhook]
 verify_jwt = false
+
+[functions.send-maintenance-emails]
+verify_jwt = false
