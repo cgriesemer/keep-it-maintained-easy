@@ -20,6 +20,14 @@ interface MaintenanceTask {
   user_id: string;
 }
 
+interface UserProfile {
+  id: string;
+  email: string;
+  email_notifications_enabled: boolean;
+  notification_frequency: string;
+  notification_time: number;
+}
+
 const getDaysRemaining = (task: MaintenanceTask): number => {
   const lastCompleted = new Date(task.last_completed);
   const nextDue = new Date(lastCompleted);
@@ -34,6 +42,28 @@ const formatDate = (dateString: string, intervalDays: number): string => {
   const nextDue = new Date(lastCompleted);
   nextDue.setDate(nextDue.getDate() + intervalDays);
   return nextDue.toLocaleDateString();
+};
+
+const shouldSendNotification = (profile: UserProfile, currentHour: number): boolean => {
+  // Check if notifications are enabled
+  if (!profile.email_notifications_enabled) {
+    return false;
+  }
+
+  // Check if it's the right time to send notifications
+  if (currentHour !== profile.notification_time) {
+    return false;
+  }
+
+  // For weekly notifications, only send on Mondays (day 1)
+  if (profile.notification_frequency === 'weekly') {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    return dayOfWeek === 1; // Only send on Mondays
+  }
+
+  // For daily notifications, send every day at the specified time
+  return profile.notification_frequency === 'daily';
 };
 
 const sendTaskEmail = async (userEmail: string, tasks: MaintenanceTask[], emailType: 'due-tomorrow' | 'due-today' | 'overdue') => {
@@ -112,7 +142,7 @@ const sendTaskEmail = async (userEmail: string, tasks: MaintenanceTask[], emailT
           <hr style="margin: 30px 0; border: 1px solid #eee;">
           <p style="color: #666; font-size: 14px;">
             This email was sent from your Maintenance Tracker app. 
-            Log in to mark tasks as complete and manage your maintenance schedule.
+            You can manage your notification preferences in your account settings.
           </p>
         </div>
       `,
@@ -139,10 +169,13 @@ serve(async (req: Request) => {
 
     console.log('Starting maintenance email check...');
 
-    // Get all users with their profiles
+    const currentHour = new Date().getUTCHours();
+    console.log(`Current UTC hour: ${currentHour}`);
+
+    // Get all users with their profiles and notification preferences
     const { data: profiles, error: profilesError } = await supabaseClient
       .from('profiles')
-      .select('id, email');
+      .select('id, email, email_notifications_enabled, notification_frequency, notification_time');
 
     if (profilesError) {
       console.error('Error fetching profiles:', profilesError);
@@ -159,6 +192,12 @@ serve(async (req: Request) => {
     for (const profile of profiles || []) {
       if (!profile.email) {
         console.log(`Skipping user ${profile.id} - no email address`);
+        continue;
+      }
+
+      // Check if we should send notifications to this user at this time
+      if (!shouldSendNotification(profile, currentHour)) {
+        console.log(`Skipping user ${profile.email} - not their notification time or notifications disabled`);
         continue;
       }
 
@@ -197,6 +236,14 @@ serve(async (req: Request) => {
         }
       });
 
+      // Only send emails if there are tasks that need attention
+      const hasTasksToNotify = tasksDueTomorrow.length > 0 || tasksDueToday.length > 0 || overdueTasks.length > 0;
+      
+      if (!hasTasksToNotify) {
+        console.log(`No tasks requiring notification for user ${profile.email}`);
+        continue;
+      }
+
       // Send emails for each category
       try {
         if (tasksDueTomorrow.length > 0) {
@@ -228,6 +275,7 @@ serve(async (req: Request) => {
       success: true,
       totalEmailsSent,
       processedUsers: profiles?.length || 0,
+      currentHour,
       results: emailResults,
       timestamp: new Date().toISOString()
     };
