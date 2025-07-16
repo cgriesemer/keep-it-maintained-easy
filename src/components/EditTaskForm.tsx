@@ -90,7 +90,8 @@ export const EditTaskForm = ({ task, open, onOpenChange, onEditTask, onDeleteTas
               id="name"
               placeholder="e.g., Change HVAC Filter"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value.slice(0, 200) })}
+              maxLength={200}
               required
             />
           </div>
@@ -119,7 +120,8 @@ export const EditTaskForm = ({ task, open, onOpenChange, onEditTask, onDeleteTas
                 <Input
                   placeholder="Enter new category name"
                   value={formData.customCategory}
-                  onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, customCategory: e.target.value.slice(0, 100) })}
+                  maxLength={100}
                   required
                 />
                 <Button
@@ -143,8 +145,15 @@ export const EditTaskForm = ({ task, open, onOpenChange, onEditTask, onDeleteTas
               id="interval"
               type="number"
               placeholder="e.g., 90"
+              min="1"
+              max="3650"
               value={formData.intervalDays}
-              onChange={(e) => setFormData({ ...formData, intervalDays: e.target.value })}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                if (value >= 1 && value <= 3650) {
+                  setFormData({ ...formData, intervalDays: e.target.value });
+                }
+              }}
               required
             />
           </div>
@@ -166,7 +175,8 @@ export const EditTaskForm = ({ task, open, onOpenChange, onEditTask, onDeleteTas
               id="description"
               placeholder="Additional notes about this task..."
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value.slice(0, 1000) })}
+              maxLength={1000}
             />
           </div>
 
