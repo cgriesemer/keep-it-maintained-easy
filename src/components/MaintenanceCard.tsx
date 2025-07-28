@@ -34,6 +34,13 @@ export const MaintenanceCard = ({ task, onComplete, onViewHistory, onEdit, onDup
     return diffDays;
   };
 
+  const getDueDate = () => {
+    const lastCompleted = new Date(task.lastCompleted);
+    const nextDue = new Date(lastCompleted);
+    nextDue.setDate(nextDue.getDate() + task.intervalDays);
+    return nextDue.toLocaleDateString();
+  };
+
   const getStatusInfo = () => {
     const daysRemaining = getDaysRemaining();
     if (daysRemaining < 0) {
@@ -96,7 +103,7 @@ export const MaintenanceCard = ({ task, onComplete, onViewHistory, onEdit, onDup
         )}
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+        <div className="flex flex-col gap-2 text-sm text-muted-foreground mb-4 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-1">
             <Calendar className="w-4 h-4" />
             <span>Every {task.intervalDays} days</span>
@@ -104,6 +111,10 @@ export const MaintenanceCard = ({ task, onComplete, onViewHistory, onEdit, onDup
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
             <span>Last: {new Date(task.lastCompleted).toLocaleDateString()}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Calendar className="w-4 h-4" />
+            <span>Due: {getDueDate()}</span>
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
