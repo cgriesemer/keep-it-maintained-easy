@@ -24,6 +24,13 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
+  const getDueDate = (task: MaintenanceTask) => {
+    const lastCompleted = new Date(task.lastCompleted);
+    const nextDue = new Date(lastCompleted);
+    nextDue.setDate(nextDue.getDate() + task.intervalDays);
+    return nextDue.toLocaleDateString();
+  };
+
   const getStatusInfo = (task: MaintenanceTask) => {
     const daysRemaining = getDaysRemaining(task);
     if (daysRemaining < 0) {
@@ -92,12 +99,16 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
                     </Badge>
                   </div>
                   
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       <span>Every {task.intervalDays}d</span>
                     </div>
                     <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      <span>Due: {getDueDate(task)}</span>
+                    </div>
+                    <div className="flex items-center gap-1 col-span-2">
                       <Clock className="w-3 h-3" />
                       <span>Last: {new Date(task.lastCompleted).toLocaleDateString()}</span>
                     </div>
@@ -173,6 +184,10 @@ export const ListView = ({ tasks, onComplete, onViewHistory, onEdit, onDuplicate
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     <span>Every {task.intervalDays}d</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    <span>Due: {getDueDate(task)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
